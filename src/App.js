@@ -28,7 +28,7 @@ const InitialEmojis = [
 ];
 
 export default function App() {
-  const [trial, setTrial] = useState(1);
+  const [trial, setTrial] = useState(0);
   const [emojis, setEmojis] = useState(InitialEmojis);
   const [curCard1, setCurCard1] = useState(null);
   const [curCard2, setCurCard2] = useState(null);
@@ -59,43 +59,75 @@ export default function App() {
     setCurCard2(null);
   }
 
-  async function handleCard(emoji) {
+  function handleCard(emoji_id) {
+    const newEmoji = emojis.find((em) => em.id === emoji_id);
+
     if (!curCard1) {
-      setCurCard1(emoji);
-      console.log(curCard1);
-      curCard1.hidden = !curCard1?.hidden;
+      // no open card
+      setCurCard1(newEmoji);
+
+      setEmojis((prevEmojis) =>
+        prevEmojis.map((emoji) =>
+          emoji.id === newEmoji.id ? { ...newEmoji, hidden: false } : emoji
+        )
+      );
       return;
     }
-    if (!curCard2 && curCard1) {
-      setCurCard2(emoji);
-      curCard2.hidden = !curCard2.hidden;
-      console.log(2);
 
-      if (curCard1.id === curCard2?.id) {
+    if (!curCard2 && curCard1) {
+      // 1 card already open clicked on another card
+      setCurCard2(newEmoji);
+
+      setEmojis((prevEmojis) =>
+        prevEmojis.map((emoji) =>
+          emoji.id === newEmoji.id ? { ...newEmoji, hidden: false } : emoji
+        )
+      );
+
+      if (curCard1.id === newEmoji.id) {
+        // clicked the same card twice
         setCurCard1(null);
         setCurCard2(null);
+        setEmojis((prevEmojis) =>
+          prevEmojis.map((emoji) =>
+            emoji.id === curCard1.id || emoji.id === newEmoji.id
+              ? { ...emoji, hidden: true }
+              : emoji
+          )
+        );
         return;
       }
 
-      if (curCard1.e === curCard2?.e && curCard1.id !== curCard2?.id) {
-        // curCard2.hidden = !curCard2.hidden;
-        setEmojis((emojis) =>
-          emojis.filter((em) => em.id !== curCard1.id && em.id !== curCard2?.id)
+      if (curCard1.e === newEmoji.e && curCard1.id !== newEmoji.id) {
+        // match then remove them
+        setEmojis((prevEmojis) =>
+          prevEmojis.filter(
+            (em) => em.id !== curCard1.id && em.id !== newEmoji.id
+          )
+        );
+      } else {
+        // no match wait 1 sec and hidde the cards
+        // await wait(1);
+        setEmojis((prevEmojis) =>
+          prevEmojis.map((emoji) =>
+            emoji.id === curCard1.id || emoji.id === newEmoji.id
+              ? { ...emoji, hidden: true }
+              : emoji
+          )
         );
       }
-      if (curCard1.e !== curCard2?.e) {
-        console.log(3);
-
-        curCard2.hidden = !curCard2.hidden;
-        await wait(4);
-        curCard1.hidden = true;
-        curCard2.hidden = true;
-      }
     }
-    console.log(4);
-
-    setCurCard1(null);
-    setCurCard2(null);
+    if (curCard2) {
+      setEmojis((prevEmojis) =>
+        prevEmojis.map((emoji) =>
+          emoji.id === curCard1.id || emoji.id === newEmoji.id
+            ? { ...emoji, hidden: true }
+            : emoji
+        )
+      );
+      setCurCard1(newEmoji);
+      setCurCard2(null);
+    }
   }
 
   return (
@@ -136,16 +168,8 @@ function GameBox({ onCard, emojis }) {
 }
 
 function Card({ emoji, onCard }) {
-  // const [show, setShow] = useState(false);
-
   return (
-    <button
-      className="card"
-      onClick={(emoji) => {
-        console.log(emoji);
-        onCard(emoji);
-      }}
-    >
+    <button className="card" onClick={() => onCard(emoji.id)}>
       {emoji?.hidden ? "?" : emoji?.e}
     </button>
   );
