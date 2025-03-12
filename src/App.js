@@ -1,30 +1,30 @@
 import { useState } from "react";
 
 const InitialEmojis = [
-  { id: 1, e: "🤑", hidden: true },
-  { id: 2, e: "😰", hidden: true },
-  { id: 3, e: "😀", hidden: true },
-  { id: 4, e: "😉", hidden: true },
-  { id: 5, e: "😭", hidden: true },
-  { id: 6, e: "😡", hidden: true },
-  { id: 7, e: "🥳", hidden: true },
-  { id: 8, e: "🥸", hidden: true },
-  { id: 9, e: "😎", hidden: true },
-  { id: 10, e: "😂", hidden: true },
-  { id: 11, e: "🥰", hidden: true },
-  { id: 12, e: "🙃", hidden: true },
-  { id: 13, e: "🤑", hidden: true },
-  { id: 14, e: "😰", hidden: true },
-  { id: 15, e: "😀", hidden: true },
-  { id: 16, e: "😉", hidden: true },
-  { id: 17, e: "😎", hidden: true },
-  { id: 18, e: "😭", hidden: true },
-  { id: 19, e: "😡", hidden: true },
-  { id: 20, e: "🥳", hidden: true },
-  { id: 21, e: "🥸", hidden: true },
-  { id: 22, e: "😂", hidden: true },
-  { id: 23, e: "🥰", hidden: true },
-  { id: 24, e: "🙃", hidden: true },
+  { id: 1, match: false, e: "🤑", hidden: true },
+  { id: 2, match: false, e: "😰", hidden: true },
+  { id: 3, match: false, e: "😀", hidden: true },
+  { id: 4, match: false, e: "😉", hidden: true },
+  { id: 5, match: false, e: "😭", hidden: true },
+  { id: 6, match: false, e: "😡", hidden: true },
+  { id: 7, match: false, e: "🥳", hidden: true },
+  { id: 8, match: false, e: "🥸", hidden: true },
+  { id: 9, match: false, e: "😎", hidden: true },
+  { id: 10, match: false, e: "😂", hidden: true },
+  { id: 11, match: false, e: "🥰", hidden: true },
+  { id: 12, match: false, e: "🙃", hidden: true },
+  { id: 13, match: false, e: "🤑", hidden: true },
+  { id: 14, match: false, e: "😰", hidden: true },
+  { id: 15, match: false, e: "😀", hidden: true },
+  { id: 16, match: false, e: "😉", hidden: true },
+  { id: 17, match: false, e: "😎", hidden: true },
+  { id: 18, match: false, e: "😭", hidden: true },
+  { id: 19, match: false, e: "😡", hidden: true },
+  { id: 20, match: false, e: "🥳", hidden: true },
+  { id: 21, match: false, e: "🥸", hidden: true },
+  { id: 22, match: false, e: "😂", hidden: true },
+  { id: 23, match: false, e: "🥰", hidden: true },
+  { id: 24, match: false, e: "🙃", hidden: true },
 ];
 
 export default function App() {
@@ -54,7 +54,9 @@ export default function App() {
   function handleReset() {
     setEmojis(InitialEmojis);
     randomEmojis();
-    setEmojis(emojis?.map((emoji) => ({ ...emoji, hidden: true })));
+    setEmojis(
+      emojis?.map((emoji) => ({ ...emoji, match: false, hidden: true }))
+    );
     setTrial(0);
     setCurCard1(null);
     setCurCard2(null);
@@ -62,6 +64,10 @@ export default function App() {
 
   function handleCard(emoji_id) {
     const newEmoji = emojis.find((em) => em.id === emoji_id);
+
+    if (newEmoji.match) {
+      return;
+    }
 
     if (!curCard1) {
       // no open card
@@ -103,8 +109,10 @@ export default function App() {
         // match then remove them
         setTrial(() => trial + 1);
         setEmojis((prevEmojis) =>
-          prevEmojis.filter(
-            (em) => em.id !== curCard1.id && em.id !== newEmoji.id
+          prevEmojis.map((em) =>
+            em.id === curCard1.id || em.id === newEmoji.id
+              ? { ...em, match: true }
+              : em
           )
         );
       } else {
@@ -122,7 +130,7 @@ export default function App() {
     if (curCard2) {
       setEmojis((prevEmojis) =>
         prevEmojis.map((emoji) =>
-          emoji.id === newEmoji.id
+          emoji.id === newEmoji.id || emoji.match
             ? { ...emoji, hidden: false }
             : { ...emoji, hidden: true }
         )
@@ -171,7 +179,10 @@ function GameBox({ onCard, emojis }) {
 
 function Card({ emoji, onCard }) {
   return (
-    <button className="card" onClick={() => onCard(emoji.id)}>
+    <button
+      className={emoji.match ? "card match" : "card"}
+      onClick={() => onCard(emoji.id)}
+    >
       {emoji?.hidden ? "?" : emoji?.e}
     </button>
   );
