@@ -30,15 +30,14 @@ const InitialEmojis = [
 export default function App() {
   InitialEmojis.forEach((emoji, i) => {
     const r = Math.floor(Math.random() * InitialEmojis.length);
-    const temp = emoji.e;
-    emoji.e = InitialEmojis[r].e;
-    InitialEmojis[r].e = temp;
+    [emoji.e, InitialEmojis[r].e] = [InitialEmojis[r].e, emoji.e];
   });
 
   const [trial, setTrial] = useState(0);
-  const [emojis, setEmojis] = useState(InitialEmojis);
+  const [emojis, setEmojis] = useState([...InitialEmojis]);
   const [curCard1, setCurCard1] = useState(null);
   const [curCard2, setCurCard2] = useState(null);
+  const [scoreCount, setScoreCount] = useState(0);
 
   function randomEmojis() {
     setEmojis(
@@ -52,10 +51,13 @@ export default function App() {
   }
 
   function handleReset() {
-    setEmojis(InitialEmojis);
-    randomEmojis();
+    const newEmojis = [...InitialEmojis];
+    newEmojis.forEach((emoji, i) => {
+      const r = Math.floor(Math.random() * newEmojis.length);
+      [emoji.e, newEmojis[r].e] = [newEmojis[r].e, emoji.e];
+    });
     setEmojis(
-      emojis?.map((emoji) => ({ ...emoji, match: false, hidden: true }))
+      newEmojis.map((emoji) => ({ ...emoji, match: false, hidden: true }))
     );
     setTrial(0);
     setCurCard1(null);
@@ -106,7 +108,7 @@ export default function App() {
       }
 
       if (curCard1.e === newEmoji.e && curCard1.id !== newEmoji.id) {
-        // match then remove them
+        // match
         setTrial(() => trial + 1);
         setEmojis((prevEmojis) =>
           prevEmojis.map((em) =>
@@ -115,6 +117,7 @@ export default function App() {
               : em
           )
         );
+        setScoreCount(scoreCount + 1);
       } else {
         // no match wait 1 sec and hidde the cards
         setTrial(() => trial + 1);
@@ -145,7 +148,7 @@ export default function App() {
       <div className="container">
         <Header />
         <GameBox onCard={handleCard} emojis={emojis} />
-        <Footer onReset={handleReset} trial={trial} />
+        <Footer onReset={handleReset} trial={trial} score={scoreCount} />
       </div>
     </div>
   );
@@ -188,11 +191,11 @@ function Card({ emoji, onCard }) {
   );
 }
 
-function Footer({ onReset, trial }) {
+function Footer({ onReset, trial, score }) {
   return (
     <footer className="footer">
       <div className="trial">
-        <h2>Trial {trial}</h2>
+        <h2> {score === 12 ? "You WON🏆" : `Trial ${trial}`}</h2>
       </div>
       <button className="reset" onClick={onReset}>
         Reset
