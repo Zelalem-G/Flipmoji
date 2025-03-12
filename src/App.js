@@ -28,6 +28,13 @@ const InitialEmojis = [
 ];
 
 export default function App() {
+  InitialEmojis.forEach((emoji, i) => {
+    const r = Math.floor(Math.random() * InitialEmojis.length);
+    const temp = emoji.e;
+    emoji.e = InitialEmojis[r].e;
+    InitialEmojis[r].e = temp;
+  });
+
   const [trial, setTrial] = useState(0);
   const [emojis, setEmojis] = useState(InitialEmojis);
   const [curCard1, setCurCard1] = useState(null);
@@ -42,12 +49,6 @@ export default function App() {
         emojis[r].e = temp;
       })
     );
-  }
-
-  function wait(seconds) {
-    return new Promise((resolve) => {
-      setTimeout(resolve, seconds * 1000);
-    });
   }
 
   function handleReset() {
@@ -100,6 +101,7 @@ export default function App() {
 
       if (curCard1.e === newEmoji.e && curCard1.id !== newEmoji.id) {
         // match then remove them
+        setTrial(() => trial + 1);
         setEmojis((prevEmojis) =>
           prevEmojis.filter(
             (em) => em.id !== curCard1.id && em.id !== newEmoji.id
@@ -107,22 +109,22 @@ export default function App() {
         );
       } else {
         // no match wait 1 sec and hidde the cards
-        // await wait(1);
-        setEmojis((prevEmojis) =>
-          prevEmojis.map((emoji) =>
-            emoji.id === curCard1.id || emoji.id === newEmoji.id
-              ? { ...emoji, hidden: true }
-              : emoji
-          )
-        );
+        setTrial(() => trial + 1);
+        // setEmojis((prevEmojis) =>
+        //   prevEmojis.map((emoji) =>
+        //     emoji.id === curCard1.id || emoji.id === newEmoji.id
+        //       ? { ...emoji, hidden: true }
+        //       : emoji
+        //   )
+        // );
       }
     }
     if (curCard2) {
       setEmojis((prevEmojis) =>
         prevEmojis.map((emoji) =>
-          emoji.id === curCard1.id || emoji.id === newEmoji.id
-            ? { ...emoji, hidden: true }
-            : emoji
+          emoji.id === newEmoji.id
+            ? { ...emoji, hidden: false }
+            : { ...emoji, hidden: true }
         )
       );
       setCurCard1(newEmoji);
